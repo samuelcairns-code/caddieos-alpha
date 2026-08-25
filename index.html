@@ -112,6 +112,12 @@ function respond(t){
 }
 
 document.getElementById('mic').onclick=()=>{
+  if ('speechSynthesis' in window){
+    const unlock=new SpeechSynthesisUtterance(' ');
+    unlock.volume=0;
+    speechSynthesis.speak(unlock);
+    speechSynthesis.cancel();
+  }
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!SR){ alert('Voice recognition is not available in this browser. Try Safari on iPhone or use the ChatGPT voice interface for the first field test.'); return; }
  const r=new SR(); r.lang='en-AU'; r.interimResults=false; r.maxAlternatives=1;
