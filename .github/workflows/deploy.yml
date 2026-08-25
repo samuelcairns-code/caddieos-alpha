@@ -1,1 +1,21 @@
+name: Deploy CaddieOS
 
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out CaddieOS
+        uses: actions/checkout@v4
+
+      - name: Confirm deployment workflow
+        run: |
+          echo "CaddieOS deployment workflow is running"
+          echo "Repository contents:"
+          ls -la
