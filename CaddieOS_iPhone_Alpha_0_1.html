@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>CaddieOS Alpha</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+*{box-sizing:border-box} body{margin:0;background:#eef1f4;color:#101828}
+.app{max-width:480px;margin:auto;min-height:100vh;background:#fff;padding-bottom:92px}
+.top{padding:calc(18px + env(safe-area-inset-top)) 20px 14px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:800;font-size:22px}.status{font-size:12px;color:#12b76a;font-weight:700}
+.hero{margin:16px;border-radius:24px;padding:24px;background:#101828;color:#fff}
+.kicker{font-size:12px;letter-spacing:.08em;opacity:.7;font-weight:700}
+h1{font-size:30px;margin:7px 0}.muted{color:#667085}.hero .muted{color:#d0d5dd}
+.rec{margin-top:20px;padding:18px;border-radius:18px;background:#fff;color:#101828}
+.rec b{font-size:28px;display:block;margin:4px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px}
+.card{background:#f8fafc;border-radius:18px;padding:16px}
+.label{font-size:11px;color:#667085;font-weight:700;letter-spacing:.06em}.big{font-size:20px;font-weight:800;margin-top:5px}
+.section{padding:0 16px;margin-top:18px}.row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eaecf0}
+.mic{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:min(440px,calc(100% - 32px));padding:17px;border:0;border-radius:18px;background:#101828;color:#fff;font-size:17px;font-weight:800;box-shadow:0 8px 30px #0002}
+button{cursor:pointer}.pill{display:inline-block;padding:6px 9px;border-radius:99px;background:#ecfdf3;color:#027a48;font-size:12px;font-weight:700}
+#transcript{min-height:22px;font-size:15px;line-height:1.4}.small{font-size:13px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="logo">CaddieOS</div><div class="status">● LIVE ALPHA</div>
+  </div>
+
+  <div class="hero">
+    <div class="kicker">ROUND DETECTED</div>
+    <h1>Killara Golf Club</h1>
+    <div class="muted">18-hole field test · Garmin + iPhone</div>
+
+    <div class="rec">
+      <div class="kicker" style="color:#667085">CADDIE</div>
+      <b id="answer">Ready when you are.</b>
+      <div id="why">Voice is running on this iPhone.</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="label">HOLE</div><div class="big" id="hole">1 · Par 4</div></div>
+    <div class="card"><div class="label">STATUS</div><div class="big"><span class="pill">READY</span></div></div>
+    <div class="card"><div class="label">DISTANCE</div><div class="big" id="distance">—</div></div>
+    <div class="card"><div class="label">WIND</div><div class="big" id="wind">—</div></div>
+  </div>
+
+  <div class="section">
+    <div class="label">LAST VOICE EVENT</div>
+    <div class="card" style="margin-top:8px"><div id="transcript">Tap the microphone and say: “What’s the play?”</div></div>
+  </div>
+
+  <div class="section">
+    <div class="label">SHOT RECORD</div>
+    <div class="card" style="margin-top:8px">
+      <div class="row"><span>Recommended</span><b id="recommended">—</b></div>
+      <div class="row"><span>Selected</span><b id="selected">—</b></div>
+      <div class="row"><span>Result</span><b id="result">—</b></div>
+    </div>
+  </div>
+
+  <div class="section small muted">
+    Alpha 0.1 — phone-first voice prototype. Garmin/MiScore/TrackMan integrations are represented as interfaces for now.
+  </div>
+</div>
+
+<button class="mic" id="mic">🎙 Talk to Caddie</button>
+
+<script>
+const answer=document.getElementById('answer'), why=document.getElementById('why');
+const transcript=document.getElementById('transcript');
+const recommended=document.getElementById('recommended'), selected=document.getElementById('selected');
+const result=document.getElementById('result');
+
+function speak(text){
+  answer.textContent=text;
+  if ('speechSynthesis' in window){
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=.96; u.pitch=1;
+    speechSynthesis.speak(u);
+  }
+}
+function respond(t){
+  const s=t.toLowerCase();
+  transcript.textContent='You: '+t;
+  if(s.includes('play') || s.includes('what should') || s.includes('what do i hit')){
+    recommended.textContent='Driver';
+    why.textContent='Initial Alpha recommendation — course/conditions will become live data in the next build.';
+    speak('Driver. Favour the left side.');
+  } else if(/\b(7|seven)\b/.test(s) && (s.includes('iron') || s.includes('hitting'))){
+    selected.textContent='7 iron';
+    speak('Got it. 7 iron recorded.');
+  } else if(/\b(8|eight)\b/.test(s) && (s.includes('iron') || s.includes('hitting'))){
+    selected.textContent='8 iron';
+    speak('Got it. 8 iron recorded.');
+  } else if(s.includes('driver')){
+    selected.textContent='Driver';
+    speak('Got it. Driver recorded.');
+  } else if(s.includes('thin') || s.includes('fat') || s.includes('toe') || s.includes('heel')){
+    result.textContent=t;
+    speak('Got it. I’ve recorded the shot result.');
+  } else {
+    speak('I heard you. In the next build I’ll use your live hole, GPS, weather and club data to answer that.');
+  }
+}
+
+document.getElementById('mic').onclick=()=>{
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){ alert('Voice recognition is not available in this browser. Try Safari on iPhone or use the ChatGPT voice interface for the first field test.'); return; }
+ const r=new SR(); r.lang='en-AU'; r.interimResults=false; r.maxAlternatives=1;
+ r.onstart=()=>{document.getElementById('mic').textContent='🎙 Listening…'};
+ r.onend=()=>{document.getElementById('mic').textContent='🎙 Talk to Caddie'};
+ r.onerror=()=>{document.getElementById('mic').textContent='🎙 Talk to Caddie'};
+ r.onresult=e=>respond(e.results[0][0].transcript);
+ r.start();
+};
+</script>
+</body>
+</html>
