@@ -30,7 +30,7 @@ button{cursor:pointer}.pill{display:inline-block;padding:6px 9px;border-radius:9
 .gps-card{margin-top:16px;padding:16px;border-radius:18px;background:#f8fafc}
 .gps-status{font-size:15px;font-weight:700;margin-bottom:8px}
 .gps-detail{font-size:13px;color:#667085;line-height:1.5}
-.gps-button{margin-top:10px;padding:12px 16px;border:0;border-radius:12px;background:#101828;color:#fff;font-weight:700;cursor:pointer}
+.gps-button{margin-top:10px;padding:12px 16px;border:0;border-radius:12px;background:#101828;color:#fff;font-weight:700;cursor:pointer}.gps-button:disabled,.survey-button:disabled{opacity:.55;cursor:default}.course-tools{margin-top:16px;padding-top:14px;border-top:1px solid #eaecf0}.course-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;font-size:14px;font-weight:700}.course-select{min-width:126px;border:1px solid #d0d5dd;border-radius:10px;padding:9px;background:#fff;font-size:14px}.survey-button{margin-top:10px;padding:10px 12px;border:0;border-radius:10px;background:#12b76a;color:#fff;font-weight:700;cursor:pointer}.course-detail{margin-top:8px;font-size:13px;color:#667085;line-height:1.45}
 </style>
 </head>
 <body>
@@ -65,6 +65,12 @@ button{cursor:pointer}.pill{display:inline-block;padding:6px 9px;border-radius:9
   <div class="gps-status" id="gpsStatus">📍 GPS not started</div>
   <div class="gps-detail" id="gpsDetail">Tap Locate Me to get your position.</div>
   <button class="gps-button" id="gpsButton">📍 Locate Me</button>
+  <div class="course-tools">
+    <div class="label">KILLARA COURSE SETUP</div>
+    <div class="course-row"><span>Current hole</span><select class="course-select" id="courseHole" aria-label="Current hole"></select></div>
+    <button class="survey-button" id="recordGreen">◎ Record this green centre</button>
+    <div class="course-detail" id="courseDetail">Select a hole, then stand at its green and use Locate Me before recording it.</div>
+  </div>
 </div>
 <script>
 const BAG_KEY='caddieos_bag_v1';
@@ -86,7 +92,23 @@ const defaultBag=[
 let bag=JSON.parse(localStorage.getItem(BAG_KEY)||'null')||defaultBag;
 const answer=document.getElementById('answer'),why=document.getElementById('why'),transcript=document.getElementById('transcript');
 const recommended=document.getElementById('recommended'),selected=document.getElementById('selected'),result=document.getElementById('result'),targetDistance=document.getElementById('targetDistance');
+const COURSE_STATE_KEY='caddieos_killara_course_v1';
+const killaraHoles=[
+  {number:1,par:5},{number:2,par:3},{number:3,par:4},{number:4,par:4},{number:5,par:4},{number:6,par:4},
+  {number:7,par:4},{number:8,par:3},{number:9,par:5},{number:10,par:5},{number:11,par:3},{number:12,par:4},
+  {number:13,par:5},{number:14,par:4},{number:15,par:4},{number:16,par:4},{number:17,par:3},{number:18,par:4}
+];
+let courseState=JSON.parse(localStorage.getItem(COURSE_STATE_KEY)||'null')||{currentHole:1,greens:{}};
+let latestLocation=null;
+const courseHole=document.getElementById('courseHole'),courseDetail=document.getElementById('courseDetail'),recordGreen=document.getElementById('recordGreen');
+function saveCourseState(){localStorage.setItem(COURSE_STATE_KEY,JSON.stringify(courseState))}
+function distanceBetween(a,b){const r=6371000,toRad=d=>d*Math.PI/180,lat1=toRad(a.lat),lat2=toRad(b.lat),dLat=lat2-lat1,dLon=toRad(b.lon-a.lon),h=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLat/2)**2;return 2*r*Math.atan2(Math.sqrt(h),Math.sqrt(1-h))}
+function updateGreenDistance(){const hole=Number(courseState.currentHole),green=courseState.greens[hole];if(!green){courseDetail.textContent=`Hole ${hole}: record the green centre when you are standing at the green.`;return}if(!latestLocation){courseDetail.textContent=`Hole ${hole} green saved. Tap Locate Me to calculate your distance.`;return}const metres=Math.round(distanceBetween(latestLocation,green));courseDetail.innerHTML=`Hole ${hole} · green centre saved<br><b>Distance to green: ${metres} m</b> · loaded into Test Distance.`;targetDistance.value=metres;document.getElementById('distance').textContent=`${metres} m`}
+function renderCourseProfile(){courseHole.innerHTML=killaraHoles.map(h=>`<option value="${h.number}">Hole ${h.number} · Par ${h.par}</option>`).join('');courseHole.value=courseState.currentHole;updateGreenDistance()}
+courseHole.addEventListener('change',()=>{courseState.currentHole=Number(courseHole.value);saveCourseState();updateGreenDistance()});
+recordGreen.addEventListener('click',()=>{if(!latestLocation){courseDetail.textContent='Tap Locate Me while standing at the green, then record its centre.';return}const hole=Number(courseState.currentHole);courseState.greens[hole]={lat:latestLocation.lat,lon:latestLocation.lon};saveCourseState();updateGreenDistance()});
 function renderBag(){document.getElementById('bagList').innerHTML=bag.map((c,i)=>`<div class="bag-row"><div><div class="bag-club">${c.name}</div><div class="bag-note">${c.note}</div></div><div><input class="bag-input" data-index="${i}" type="number" inputmode="decimal" min="0" step="1" value="${c.carry}" placeholder="—"><div class="unit">carry m</div></div></div>`).join('')}
+renderCourseProfile();
 renderBag();
 document.getElementById('saveBag').onclick=()=>{document.querySelectorAll('.bag-input').forEach(x=>bag[Number(x.dataset.index)].carry=x.value);localStorage.setItem(BAG_KEY,JSON.stringify(bag));document.getElementById('savedMsg').textContent='✓ My Bag saved on this iPhone';setTimeout(()=>document.getElementById('savedMsg').textContent='',1800)};
 function speak(text){answer.textContent=text;if('speechSynthesis'in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=.96;u.pitch=1;speechSynthesis.speak(u)}}
@@ -164,9 +186,11 @@ async function identifyCourse(lat, lon, accuracy) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
       const accuracy = Math.round(position.coords.accuracy);
+      latestLocation={lat,lon,accuracy};
 
       try {
         await identifyCourse(lat, lon, accuracy);
+        updateGreenDistance();
       } finally {
         gpsBusy = false;
         button.disabled = false;
