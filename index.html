@@ -125,7 +125,26 @@ document.getElementById('gpsButton').onclick = () => {
         `Latitude: ${lat.toFixed(6)}<br>` +
         `Longitude: ${lon.toFixed(6)}<br>` +
         `Updated: ${new Date().toLocaleTimeString()}`;
-    },
+          const killaraLat = -33.769235;
+      const killaraLon = 151.159601;
+
+      const toRad = v => v * Math.PI / 180;
+      const dLat = toRad(lat - killaraLat);
+      const dLon = toRad(lon - killaraLon);
+
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(killaraLat)) *
+        Math.cos(toRad(lat)) *
+        Math.sin(dLon / 2) ** 2;
+
+      const distanceFromKillara = 6371000 *
+        2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      if (distanceFromKillara < 800) {
+        status.textContent = '📍 GPS connected · Killara Golf Club';
+        detail.innerHTML +=
+          `<br><b>Course:</b> Killara Golf Club`;
+      }},
     error => {
       status.textContent = '❌ GPS error';
 
