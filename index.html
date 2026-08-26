@@ -8,125 +8,85 @@
 <title>CaddieOS Alpha</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
-*{box-sizing:border-box} body{margin:0;background:#eef1f4;color:#101828}
+*{box-sizing:border-box}body{margin:0;background:#eef1f4;color:#101828}
 .app{max-width:480px;margin:auto;min-height:100vh;background:#fff;padding-bottom:92px}
 .top{padding:calc(18px + env(safe-area-inset-top)) 20px 14px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
 .logo{font-weight:800;font-size:22px}.status{font-size:12px;color:#12b76a;font-weight:700}
 .hero{margin:16px;border-radius:24px;padding:24px;background:#101828;color:#fff}
-.kicker{font-size:12px;letter-spacing:.08em;opacity:.7;font-weight:700}
-h1{font-size:30px;margin:7px 0}.muted{color:#667085}.hero .muted{color:#d0d5dd}
-.rec{margin-top:20px;padding:18px;border-radius:18px;background:#fff;color:#101828}
-.rec b{font-size:28px;display:block;margin:4px 0}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px}
-.card{background:#f8fafc;border-radius:18px;padding:16px}
-.label{font-size:11px;color:#667085;font-weight:700;letter-spacing:.06em}.big{font-size:20px;font-weight:800;margin-top:5px}
-.section{padding:0 16px;margin-top:18px}.row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eaecf0}
+.kicker{font-size:12px;letter-spacing:.08em;opacity:.7;font-weight:700}h1{font-size:30px;margin:7px 0}
+.muted{color:#667085}.hero .muted{color:#d0d5dd}.rec{margin-top:20px;padding:18px;border-radius:18px;background:#fff;color:#101828}
+.rec b{font-size:28px;display:block;margin:4px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px}
+.card{background:#f8fafc;border-radius:18px;padding:16px}.label{font-size:11px;color:#667085;font-weight:700;letter-spacing:.06em}
+.big{font-size:20px;font-weight:800;margin-top:5px}.section{padding:0 16px;margin-top:18px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eaecf0}
 .mic{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:min(440px,calc(100% - 32px));padding:17px;border:0;border-radius:18px;background:#101828;color:#fff;font-size:17px;font-weight:800;box-shadow:0 8px 30px #0002}
 button{cursor:pointer}.pill{display:inline-block;padding:6px 9px;border-radius:99px;background:#ecfdf3;color:#027a48;font-size:12px;font-weight:700}
 #transcript{min-height:22px;font-size:15px;line-height:1.4}.small{font-size:13px}
+.bag-list{display:grid;gap:8px}.bag-row{display:grid;grid-template-columns:1fr 112px;gap:8px;align-items:center;background:#f8fafc;border-radius:14px;padding:10px 12px}
+.bag-club{font-weight:700}.bag-note{font-size:11px;color:#667085;margin-top:2px}.bag-input{width:100%;border:1px solid #d0d5dd;border-radius:10px;padding:9px 8px;font-size:15px;text-align:right;background:#fff}
+.unit{font-size:11px;color:#667085;text-align:right;margin-top:2px}.save{width:100%;margin-top:10px;padding:12px;border:0;border-radius:12px;background:#12b76a;color:#fff;font-weight:800;font-size:15px}
+.saved{font-size:12px;color:#027a48;font-weight:700;text-align:center;margin-top:7px;min-height:16px}
+.target{display:grid;grid-template-columns:1fr 100px;gap:8px;align-items:center}.target input{width:100%;border:1px solid #d0d5dd;border-radius:10px;padding:10px;font-size:16px;text-align:right}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="top">
-    <div class="logo">CaddieOS</div><div class="status">● LIVE ALPHA</div>
-  </div>
-
-  <div class="hero">
-    <div class="kicker">ROUND DETECTED</div>
-    <h1>Killara Golf Club</h1>
-    <div class="muted">18-hole field test · Garmin + iPhone</div>
-
-    <div class="rec">
-      <div class="kicker" style="color:#667085">CADDIE</div>
-      <b id="answer">Ready when you are.</b>
-      <div id="why">Voice is running on this iPhone.</div>
-    </div>
-  </div>
-
-  <div class="grid">
-    <div class="card"><div class="label">HOLE</div><div class="big" id="hole">1 · Par 4</div></div>
-    <div class="card"><div class="label">STATUS</div><div class="big"><span class="pill">READY</span></div></div>
-    <div class="card"><div class="label">DISTANCE</div><div class="big" id="distance">—</div></div>
-    <div class="card"><div class="label">WIND</div><div class="big" id="wind">—</div></div>
-  </div>
-
-  <div class="section">
-    <div class="label">LAST VOICE EVENT</div>
-    <div class="card" style="margin-top:8px"><div id="transcript">Tap the microphone and say: “What’s the play?”</div></div>
-  </div>
-
-  <div class="section">
-    <div class="label">SHOT RECORD</div>
-    <div class="card" style="margin-top:8px">
-      <div class="row"><span>Recommended</span><b id="recommended">—</b></div>
-      <div class="row"><span>Selected</span><b id="selected">—</b></div>
-      <div class="row"><span>Result</span><b id="result">—</b></div>
-    </div>
-  </div>
-
-  <div class="section small muted">
-    Alpha 0.1 — phone-first voice prototype. Garmin/MiScore/TrackMan integrations are represented as interfaces for now.
-  </div>
+<div class="top"><div class="logo">CaddieOS</div><div class="status">● LIVE ALPHA</div></div>
+<div class="hero">
+<div class="kicker">ROUND DETECTED</div><h1>Killara Golf Club</h1><div class="muted">18-hole field test · Garmin + iPhone</div>
+<div class="rec"><div class="kicker" style="color:#667085">CADDIE</div><b id="answer">Ready when you are.</b><div id="why">Your club distances are now stored on this iPhone.</div></div>
 </div>
-
+<div class="grid">
+<div class="card"><div class="label">HOLE</div><div class="big" id="hole">1 · Par 4</div></div>
+<div class="card"><div class="label">STATUS</div><div class="big"><span class="pill">READY</span></div></div>
+<div class="card"><div class="label">DISTANCE</div><div class="big" id="distance">—</div></div>
+<div class="card"><div class="label">WIND</div><div class="big" id="wind">—</div></div>
+</div>
+<div class="section">
+<div class="label">MY BAG</div><div class="small muted" style="margin:4px 0 8px">Your normal carry distances</div>
+<div class="card"><div class="bag-list" id="bagList"></div><button class="save" id="saveBag">Save My Bag</button><div class="saved" id="savedMsg"></div></div>
+</div>
+<div class="section">
+<div class="label">TEST DISTANCE</div><div class="card" style="margin-top:8px"><div class="target"><span>Target to green</span><input id="targetDistance" type="number" inputmode="decimal" placeholder="e.g. 145"></div>
+<div class="small muted" style="margin-top:8px">For Stage 1, enter a distance manually. Later Garmin/GPS will fill this automatically.</div></div>
+</div>
+<div class="section"><div class="label">LAST VOICE EVENT</div><div class="card" style="margin-top:8px"><div id="transcript">Tap the microphone and say: “What’s the play?”</div></div></div>
+<div class="section"><div class="label">SHOT RECORD</div><div class="card" style="margin-top:8px">
+<div class="row"><span>Recommended</span><b id="recommended">—</b></div><div class="row"><span>Selected</span><b id="selected">—</b></div><div class="row"><span>Result</span><b id="result">—</b></div>
+</div></div>
+<div class="section small muted">Alpha 0.2 — My Bag is saved on this iPhone. Garmin/MiScore/TrackMan integrations remain the next stages.</div>
+</div>
 <button class="mic" id="mic">🎙 Talk to Caddie</button>
-
 <script>
-const answer=document.getElementById('answer'), why=document.getElementById('why');
-const transcript=document.getElementById('transcript');
-const recommended=document.getElementById('recommended'), selected=document.getElementById('selected');
-const result=document.getElementById('result');
-
-function speak(text){
-  answer.textContent=text;
-  if ('speechSynthesis' in window){
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.rate=.96; u.pitch=1;
-    speechSynthesis.speak(u);
-  }
-}
-function respond(t){
-  const s=t.toLowerCase();
-  transcript.textContent='You: '+t;
-  if(s.includes('play') || s.includes('what should') || s.includes('what do i hit')){
-    recommended.textContent='Driver';
-    why.textContent='Initial Alpha recommendation — course/conditions will become live data in the next build.';
-    speak('Driver. Favour the left side.');
-  } else if(/\b(7|seven)\b/.test(s) && (s.includes('iron') || s.includes('hitting'))){
-    selected.textContent='7 iron';
-    speak('Got it. 7 iron recorded.');
-  } else if(/\b(8|eight)\b/.test(s) && (s.includes('iron') || s.includes('hitting'))){
-    selected.textContent='8 iron';
-    speak('Got it. 8 iron recorded.');
-  } else if(s.includes('driver')){
-    selected.textContent='Driver';
-    speak('Got it. Driver recorded.');
-  } else if(s.includes('thin') || s.includes('fat') || s.includes('toe') || s.includes('heel')){
-    result.textContent=t;
-    speak('Got it. I’ve recorded the shot result.');
-  } else {
-    speak('I heard you. In the next build I’ll use your live hole, GPS, weather and club data to answer that.');
-  }
-}
-
-document.getElementById('mic').onclick=()=>{
-  if ('speechSynthesis' in window){
-    const unlock=new SpeechSynthesisUtterance(' ');
-    unlock.volume=0;
-    speechSynthesis.speak(unlock);
-    speechSynthesis.cancel();
-  }
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){ alert('Voice recognition is not available in this browser. Try Safari on iPhone or use the ChatGPT voice interface for the first field test.'); return; }
- const r=new SR(); r.lang='en-AU'; r.interimResults=false; r.maxAlternatives=1;
- r.onstart=()=>{document.getElementById('mic').textContent='🎙 Listening…'};
- r.onend=()=>{document.getElementById('mic').textContent='🎙 Talk to Caddie'};
- r.onerror=()=>{document.getElementById('mic').textContent='🎙 Talk to Caddie'};
- r.onresult=e=>respond(e.results[0][0].transcript);
- r.start();
-};
+const BAG_KEY='caddieos_bag_v1';
+const defaultBag=[
+{id:'driver',name:'Driver',note:'Callaway Quantum Triple Diamond Max',carry:240},
+{id:'3wood',name:'3 Wood',note:'Titleist GT3',carry:220},
+{id:'3hybrid',name:'3 Hybrid',note:'Ping',carry:200},
+{id:'4hybrid',name:'4 Hybrid',note:'Titleist',carry:180},
+{id:'4iron',name:'4 Iron',note:'AP2',carry:175},
+{id:'5iron',name:'5 Iron',note:'AP2',carry:170},
+{id:'6iron',name:'6 Iron',note:'AP2',carry:160},
+{id:'7iron',name:'7 Iron',note:'AP2',carry:150},
+{id:'8iron',name:'8 Iron',note:'AP2',carry:140},
+{id:'9iron',name:'9 Iron',note:'AP2',carry:130},
+{id:'pw',name:'Pitching Wedge',note:'AP2',carry:120},
+{id:'50wedge',name:'50° Wedge',note:'Vokey',carry:105},
+{id:'60wedge',name:'60° Wedge',note:'Vokey',carry:90}
+];
+let bag=JSON.parse(localStorage.getItem(BAG_KEY)||'null')||defaultBag;
+const answer=document.getElementById('answer'),why=document.getElementById('why'),transcript=document.getElementById('transcript');
+const recommended=document.getElementById('recommended'),selected=document.getElementById('selected'),result=document.getElementById('result'),targetDistance=document.getElementById('targetDistance');
+function renderBag(){document.getElementById('bagList').innerHTML=bag.map((c,i)=>`<div class="bag-row"><div><div class="bag-club">${c.name}</div><div class="bag-note">${c.note}</div></div><div><input class="bag-input" data-index="${i}" type="number" inputmode="decimal" min="0" step="1" value="${c.carry}" placeholder="—"><div class="unit">carry m</div></div></div>`).join('')}
+renderBag();
+document.getElementById('saveBag').onclick=()=>{document.querySelectorAll('.bag-input').forEach(x=>bag[Number(x.dataset.index)].carry=x.value);localStorage.setItem(BAG_KEY,JSON.stringify(bag));document.getElementById('savedMsg').textContent='✓ My Bag saved on this iPhone';setTimeout(()=>document.getElementById('savedMsg').textContent='',1800)};
+function speak(text){answer.textContent=text;if('speechSynthesis'in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=.96;u.pitch=1;speechSynthesis.speak(u)}}
+function bestClubForDistance(m){const d=Number(m),usable=bag.filter(c=>Number(c.carry)>0).map(c=>({...c,carry:Number(c.carry)}));if(!usable.length)return null;usable.sort((a,b)=>a.carry-b.carry);return usable.find(c=>c.carry>=d)||usable[usable.length-1]}
+function recommendFromDistance(){const d=Number(targetDistance.value);if(!d){speak('Enter a target distance first, then ask me what to hit.');return}const c=bestClubForDistance(d);if(!c){speak('I need at least one club carry distance in My Bag.');return}recommended.textContent=c.name;why.textContent=`${d} m target · using your stored carry distances.`;speak(`${c.name}. Your stored carry is ${c.carry} metres for a ${d} metre target.`)}
+function parseDistanceCommand(s){const m=s.match(/(?:is|carry(?:s)?|go(?:es)?)\s*(?:about\s*)?(\d{2,3})\s*(?:met(?:re|er)s?|m)?/i),cm=s.match(/(driver|3\s*wood|4\s*hybrid|4h|5\s*iron|5i|6\s*iron|6i|7\s*iron|7i|8\s*iron|8i|9\s*iron|9i|pitching wedge|pw|52(?: degree|°)?|60(?: degree|°)?)/i);if(!m||!cm)return false;const n=cm[1].toLowerCase().replace(/\s+/g,'');let c=bag.find(x=>x.name.toLowerCase().replace(/\s+/g,'')===n);if(!c){const a={'7iron':'7i','8iron':'8i','5iron':'5i','6iron':'6i','9iron':'9i','4hybrid':'4h','3wood':'3wood','pitchingwedge':'pw'};c=bag.find(x=>x.id===a[n]||x.id===n)}if(!c)return false;c.carry=m[1];localStorage.setItem(BAG_KEY,JSON.stringify(bag));renderBag();speak(`${c.name} saved at ${c.carry} metres carry.`);return true}
+function respond(t){const s=t.toLowerCase();transcript.textContent='You: '+t;if(parseDistanceCommand(t))return;if(s.includes('play')||s.includes('what should')||s.includes('what do i hit'))recommendFromDistance();else if(/(7|seven)/.test(s)&&(s.includes('iron')||s.includes('hitting'))){selected.textContent='7 iron';speak('Got it. 7 iron recorded.')}else if(/(8|eight)/.test(s)&&(s.includes('iron')||s.includes('hitting'))){selected.textContent='8 iron';speak('Got it. 8 iron recorded.')}else if(s.includes('driver')){selected.textContent='Driver';speak('Got it. Driver recorded.')}else if(s.includes('thin')||s.includes('fat')||s.includes('toe')||s.includes('heel')){result.textContent=t;speak('Got it. I’ve recorded the shot result.')}else speak('I heard you. I can now use your stored club distances. GPS, weather and Garmin data will come in the next stages.')}
+targetDistance.addEventListener('change',()=>{const d=Number(targetDistance.value);document.getElementById('distance').textContent=d?`${d} m`:'—'});
+document.getElementById('mic').onclick=()=>{if('speechSynthesis'in window){const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);speechSynthesis.cancel()}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Voice recognition is not available in this browser. Try Safari on iPhone or use the ChatGPT voice interface for the first field test.');return}const r=new SR();r.lang='en-AU';r.interimResults=false;r.maxAlternatives=1;r.onstart=()=>document.getElementById('mic').textContent='🎙 Listening…';r.onend=()=>document.getElementById('mic').textContent='🎙 Talk to Caddie';r.onerror=()=>document.getElementById('mic').textContent='🎙 Talk to Caddie';r.onresult=e=>respond(e.results[0][0].transcript);r.start()};
 </script>
 </body>
 </html>
