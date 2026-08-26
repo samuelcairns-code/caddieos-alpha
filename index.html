@@ -164,12 +164,7 @@ async function identifyCourse(lat, lon) {
         `Latitude: ${lat.toFixed(6)}<br>` +
         `Longitude: ${lon.toFixed(6)}<br>` +
         `Updated: ${new Date().toLocaleTimeString()}`;
-status.textContent = '📍 GPS connected';
-detail.innerHTML =
-  `Accuracy: <b>${accuracy} m</b><br>` +
-  `Latitude: ${lat.toFixed(6)}<br>` +
-  `Longitude: ${lon.toFixed(6)}<br>` +
-  `Updated: ${new Date().toLocaleTimeString()}`;
+        },
     error => {
       status.textContent = '❌ GPS error';
 
