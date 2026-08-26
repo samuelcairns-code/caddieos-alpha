@@ -30,7 +30,7 @@ button{cursor:pointer}.pill{display:inline-block;padding:6px 9px;border-radius:9
 .gps-card{margin-top:16px;padding:16px;border-radius:18px;background:#f8fafc}
 .gps-status{font-size:15px;font-weight:700;margin-bottom:8px}
 .gps-detail{font-size:13px;color:#667085;line-height:1.5}
-.gps-button{margin-top:10px;padding:12px 16px;border:0;border-radius:12px;background:#101828;color:#fff;font-weight:700;cursor:pointer}.gps-button:disabled,.survey-button:disabled{opacity:.55;cursor:default}.course-tools{margin-top:16px;padding-top:14px;border-top:1px solid #eaecf0}.course-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;font-size:14px;font-weight:700}.course-select{min-width:126px;border:1px solid #d0d5dd;border-radius:10px;padding:9px;background:#fff;font-size:14px}.survey-button{margin-top:10px;padding:10px 12px;border:0;border-radius:10px;background:#12b76a;color:#fff;font-weight:700;cursor:pointer}.course-detail{margin-top:8px;font-size:13px;color:#667085;line-height:1.45}
+.gps-button{margin-top:10px;padding:12px 16px;border:0;border-radius:12px;background:#101828;color:#fff;font-weight:700;cursor:pointer}.gps-button:disabled,.survey-button:disabled{opacity:.55;cursor:default}.round-mode{margin-top:10px;padding:10px 12px;border-radius:12px;background:#ecfdf3;color:#027a48;font-size:13px;font-weight:700;line-height:1.4}.course-tools{margin-top:16px;padding-top:14px;border-top:1px solid #eaecf0}.course-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;font-size:14px;font-weight:700}.course-select{min-width:126px;border:1px solid #d0d5dd;border-radius:10px;padding:9px;background:#fff;font-size:14px}.survey-button{margin-top:10px;padding:10px 12px;border:0;border-radius:10px;background:#12b76a;color:#fff;font-weight:700;cursor:pointer}.course-detail{margin-top:8px;font-size:13px;color:#667085;line-height:1.45}
 </style>
 </head>
 <body>
@@ -54,17 +54,18 @@ button{cursor:pointer}.pill{display:inline-block;padding:6px 9px;border-radius:9
 <div class="label">TEST DISTANCE</div><div class="card" style="margin-top:8px"><div class="target"><span>Target to green</span><input id="targetDistance" type="number" inputmode="decimal" placeholder="e.g. 145"></div>
 <div class="small muted" style="margin-top:8px">For Stage 1, enter a distance manually. Later Garmin/GPS will fill this automatically.</div></div>
 </div>
-<div class="section"><div class="label">LAST VOICE EVENT</div><div class="card" style="margin-top:8px"><div id="transcript">Tap the microphone and say: “What’s the play?”</div></div></div>
+<div class="section"><div class="label">LAST VOICE EVENT</div><div class="card" style="margin-top:8px"><div id="transcript">Start Hands-Free Round, then say: “What’s the play?”</div></div></div>
 <div class="section"><div class="label">SHOT RECORD</div><div class="card" style="margin-top:8px">
 <div class="row"><span>Recommended</span><b id="recommended">—</b></div><div class="row"><span>Selected</span><b id="selected">—</b></div><div class="row"><span>Result</span><b id="result">—</b></div>
 </div></div>
 <div class="section small muted">Alpha 0.2 — My Bag is saved on this iPhone. Garmin/MiScore/TrackMan integrations remain the next stages.</div>
 </div>
-<button class="mic" id="mic">🎙 Talk to Caddie</button>
+<button class="mic" id="mic">🎙 Start Hands-Free Round</button>
   <div class="gps-card">
   <div class="gps-status" id="gpsStatus">📍 GPS not started</div>
   <div class="gps-detail" id="gpsDetail">Tap Locate Me to get your position.</div>
   <button class="gps-button" id="gpsButton">📍 Locate Me</button>
+  <div class="round-mode" id="roundModeStatus">Voice is off. Start Hands-Free Round once to enable microphone and GPS access.</div>
   <div class="course-tools">
     <div class="label">KILLARA COURSE SETUP</div>
     <div class="course-row"><span>Current hole</span><select class="course-select" id="courseHole" aria-label="Current hole"></select></div>
@@ -139,7 +140,8 @@ function speak(text){answer.textContent=text;if('speechSynthesis'in window){spee
 function bestClubForDistance(m){const d=Number(m),usable=bag.filter(c=>Number(c.carry)>0).map(c=>({...c,carry:Number(c.carry)}));if(!usable.length)return null;usable.sort((a,b)=>a.carry-b.carry);return usable.find(c=>c.carry>=d)||usable[usable.length-1]}
 function recommendFromDistance(){const d=Number(targetDistance.value);if(!d){speak('Enter a target distance first, then ask me what to hit.');return}const c=bestClubForDistance(d);if(!c){speak('I need at least one club carry distance in My Bag.');return}recommended.textContent=c.name;why.textContent=`${d} m target · using your stored carry distances.`;speak(`${c.name}. Your stored carry is ${c.carry} metres for a ${d} metre target.`)}
 function parseDistanceCommand(s){const m=s.match(/(?:is|carry(?:s)?|go(?:es)?)\s*(?:about\s*)?(\d{2,3})\s*(?:met(?:re|er)s?|m)?/i),cm=s.match(/(driver|3\s*wood|4\s*hybrid|4h|5\s*iron|5i|6\s*iron|6i|7\s*iron|7i|8\s*iron|8i|9\s*iron|9i|pitching wedge|pw|52(?: degree|°)?|60(?: degree|°)?)/i);if(!m||!cm)return false;const n=cm[1].toLowerCase().replace(/\s+/g,'');let c=bag.find(x=>x.name.toLowerCase().replace(/\s+/g,'')===n);if(!c){const a={'7iron':'7i','8iron':'8i','5iron':'5i','6iron':'6i','9iron':'9i','4hybrid':'4h','3wood':'3wood','pitchingwedge':'pw'};c=bag.find(x=>x.id===a[n]||x.id===n)}if(!c)return false;c.carry=m[1];localStorage.setItem(BAG_KEY,JSON.stringify(bag));renderBag();speak(`${c.name} saved at ${c.carry} metres carry.`);return true}
-function respond(t){const s=t.toLowerCase();transcript.textContent='You: '+t;if(parseDistanceCommand(t))return;if(s.includes('play')||s.includes('what should')||s.includes('what do i hit'))recommendFromDistance();else if(/(7|seven)/.test(s)&&(s.includes('iron')||s.includes('hitting'))){selected.textContent='7 iron';speak('Got it. 7 iron recorded.')}else if(/(8|eight)/.test(s)&&(s.includes('iron')||s.includes('hitting'))){selected.textContent='8 iron';speak('Got it. 8 iron recorded.')}else if(s.includes('driver')){selected.textContent='Driver';speak('Got it. Driver recorded.')}else if(s.includes('thin')||s.includes('fat')||s.includes('toe')||s.includes('heel')){result.textContent=t;speak('Got it. I’ve recorded the shot result.')}else speak('I heard you. I can now use your stored club distances. GPS, weather and Garmin data will come in the next stages.')}
+function setCurrentHole(hole,{announce=false}={}){const h=killaraHoles.find(item=>item.number===hole);if(!h)return false;courseState.currentHole=hole;courseHole.value=hole;saveCourseState();updateGreenDistance();document.getElementById('hole').textContent=`${hole} · Par ${h.par}`;if(announce)speak(`Hole ${hole}, par ${h.par}.`);return true}
+function respond(t){const s=t.toLowerCase().replace(/[.,!?]/g,' ').replace(/\s+/g,' ').trim();transcript.textContent='You: '+t;if(/\b(stop|end|finish) (the )?(round|listening|hands free|hands-free)\b/.test(s)){stopHandsFreeRound('Hands-free round mode stopped.');return}if(/\b(locate me|find me|where am i|update (my )?(gps|location))\b/.test(s)){speak('Finding your position.');requestLocation();return}const holeMatch=s.match(/\bhole\s+(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen)\b/);if(holeMatch){const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18};const hole=Number(holeMatch[1])||words[holeMatch[1]];if(setCurrentHole(hole,{announce:true}))return;speak('Please choose a hole from one to eighteen.');return}if(parseDistanceCommand(t))return;if(s.includes('play')||s.includes('what should')||s.includes('what do i hit'))recommendFromDistance();else if(/\b(7|seven)\b/.test(s)&&(s.includes('iron')||s.includes('hitting'))){selected.textContent='7 iron';speak('Got it. 7 iron recorded.')}else if(/\b(8|eight)\b/.test(s)&&(s.includes('iron')||s.includes('hitting'))){selected.textContent='8 iron';speak('Got it. 8 iron recorded.')}else if(s.includes('driver')){selected.textContent='Driver';speak('Got it. Driver recorded.')}else if(s.includes('thin')||s.includes('fat')||s.includes('toe')||s.includes('heel')){result.textContent=t;speak('Got it. I’ve recorded the shot result.')}else speak('I heard you. Say Locate Me, Hole followed by a number, or What is the play.')}
 let gpsBusy = false;
 
 async function identifyCourse(lat, lon, accuracy) {
@@ -187,7 +189,7 @@ async function identifyCourse(lat, lon, accuracy) {
       `Location check complete. Course identification unavailable.`;
   }
 }
-  document.getElementById('gpsButton').onclick = () => {
+  function requestLocation() {
   const status = document.getElementById('gpsStatus');
   const detail = document.getElementById('gpsDetail');
   const button = document.getElementById('gpsButton');
@@ -239,9 +241,17 @@ async function identifyCourse(lat, lon, accuracy) {
       timeout: 15000
     }
   );
-};
+}
+document.getElementById('gpsButton').onclick = requestLocation;
   targetDistance.addEventListener('change',()=>{const d=Number(targetDistance.value);document.getElementById('distance').textContent=d?`${d} m`:'—'});
-document.getElementById('mic').onclick=()=>{if('speechSynthesis'in window){const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);speechSynthesis.cancel()}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Voice recognition is not available in this browser. Try Safari on iPhone or use the ChatGPT voice interface for the first field test.');return}const r=new SR();r.lang='en-AU';r.interimResults=false;r.maxAlternatives=1;r.onstart=()=>document.getElementById('mic').textContent='🎙 Listening…';r.onend=()=>document.getElementById('mic').textContent='🎙 Talk to Caddie';r.onerror=()=>document.getElementById('mic').textContent='🎙 Talk to Caddie';r.onresult=e=>respond(e.results[0][0].transcript);r.start()};
+const mic=document.getElementById('mic'),roundModeStatus=document.getElementById('roundModeStatus');
+let handsFreeActive=false,recognition=null,recognitionStarting=false,suppressRecognitionUntil=0;
+function setRoundMode(active,message){handsFreeActive=active;mic.textContent=active?'⏹ End Hands-Free Round':'🎙 Start Hands-Free Round';roundModeStatus.textContent=message}
+function startListening(){if(!handsFreeActive||recognitionStarting)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){setRoundMode(false,'Voice recognition is not available in this browser. Use Safari on iPhone for the field test.');return}if(!recognition){recognition=new SR();recognition.lang='en-AU';recognition.continuous=true;recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onstart=()=>{recognitionStarting=true;roundModeStatus.textContent='Listening for Caddie commands. Say “End round” to stop.'};recognition.onend=()=>{recognitionStarting=false;if(handsFreeActive)setTimeout(startListening,350)};recognition.onerror=e=>{recognitionStarting=false;if(e.error==='not-allowed'||e.error==='service-not-allowed'){setRoundMode(false,'Microphone access was denied. Allow microphone access, then start Hands-Free Round again.')}};recognition.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal&&Date.now()>=suppressRecognitionUntil)respond(e.results[i][0].transcript)}}}try{recognition.start()}catch(error){recognitionStarting=false}}
+function stopHandsFreeRound(message='Hands-free round mode stopped.'){setRoundMode(false,message);if(recognition&&recognitionStarting)recognition.stop();speak(message)}
+const originalSpeak=speak;
+speak=function(text){suppressRecognitionUntil=Date.now()+Math.max(1200,text.length*75);originalSpeak(text)}
+mic.onclick=()=>{if(handsFreeActive){stopHandsFreeRound();return}setRoundMode(true,'Starting hands-free round. Requesting microphone and GPS access…');requestLocation();startListening();speak('Hands-free round started. Say Locate Me, Hole followed by a number, or What is the play.')};
 </script>
 </body>
 </html>
