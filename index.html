@@ -96,7 +96,45 @@ function parseDistanceCommand(s){const m=s.match(/(?:is|carry(?:s)?|go(?:es)?)\s
 function respond(t){const s=t.toLowerCase();transcript.textContent='You: '+t;if(parseDistanceCommand(t))return;if(s.includes('play')||s.includes('what should')||s.includes('what do i hit'))recommendFromDistance();else if(/(7|seven)/.test(s)&&(s.includes('iron')||s.includes('hitting'))){selected.textContent='7 iron';speak('Got it. 7 iron recorded.')}else if(/(8|eight)/.test(s)&&(s.includes('iron')||s.includes('hitting'))){selected.textContent='8 iron';speak('Got it. 8 iron recorded.')}else if(s.includes('driver')){selected.textContent='Driver';speak('Got it. Driver recorded.')}else if(s.includes('thin')||s.includes('fat')||s.includes('toe')||s.includes('heel')){result.textContent=t;speak('Got it. I’ve recorded the shot result.')}else speak('I heard you. I can now use your stored club distances. GPS, weather and Garmin data will come in the next stages.')}
 let gpsWatchId = null;
 
-document.getElementById('gpsButton').onclick = () => {
+async function identifyCourse(lat, lon) {
+  const status = document.getElementById('gpsStatus');
+  const detail = document.getElementById('gpsDetail');
+
+  try {
+    status.textContent = '📍 GPS connected · Finding course…';
+
+    const url =
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2` +
+      `&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const address = data.address || {};
+
+    const course =
+      data.name ||
+      address.golf_course ||
+      address.club ||
+      address.leisure;
+
+    if (course) {
+      status.textContent = '⛳ Course detected';
+      detail.innerHTML +=
+        `<br><b>Course:</b> ${course}`;
+    } else {
+      status.textContent = '📍 GPS connected';
+      detail.innerHTML +=
+        `<br><b>Course:</b> Not identified yet`;
+    }
+
+  } catch (error) {
+    status.textContent = '📍 GPS connected';
+    detail.innerHTML +=
+      `<br><b>Course:</b> Identification unavailable`;
+  }
+}
+  document.getElementById('gpsButton').onclick = () => {
   const status = document.getElementById('gpsStatus');
   const detail = document.getElementById('gpsDetail');
 
@@ -120,6 +158,7 @@ document.getElementById('gpsButton').onclick = () => {
       const accuracy = Math.round(position.coords.accuracy);
 
       status.textContent = '📍 GPS connected';
+      identifyCourse(lat, lon);
       detail.innerHTML =
         `Accuracy: <b>${accuracy} m</b><br>` +
         `Latitude: ${lat.toFixed(6)}<br>` +
