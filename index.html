@@ -55,19 +55,19 @@ button{cursor:pointer}.pill{display:inline-block;padding:6px 9px;border-radius:9
 <div class="small muted" style="margin-top:8px" id="distanceSource">GPS uses the verified green centre. Say “Pin is 142 metres” to use your rangefinder distance.</div></div>
 </div>
 <div class="section"><div class="label">LAYUP PREFERENCE</div><div class="card" style="margin-top:8px"><div class="target"><span>Leave to green</span><input id="layupDistance" type="number" inputmode="decimal" min="0" step="1" aria-label="Preferred layup distance in metres"></div><div class="small muted" style="margin-top:8px">Say “Lay up” to choose a club that leaves this distance to the green.</div></div></div>
-<div class="section"><div class="label">LAST VOICE EVENT</div><div class="card" style="margin-top:8px"><div id="transcript">Start Hands-Free Round, then say: “What’s the play?”</div></div></div>
+<div class="section"><div class="label">LAST VOICE EVENT</div><div class="card" style="margin-top:8px"><div id="transcript">Tap Talk to Caddie, then say: “What’s the play?”</div></div></div>
 <div class="section"><div class="label">SHOT RECORD</div><div class="card" style="margin-top:8px">
 <div class="row"><span>Recommended</span><b id="recommended">—</b></div><div class="row"><span>Selected</span><b id="selected">—</b></div><div class="row"><span>Result</span><b id="result">—</b></div><div class="row"><span>Putts</span><b id="putts">—</b></div>
 </div></div>
 <div class="section"><div class="label">ROUND REVIEW</div><div class="card" style="margin-top:8px"><div id="roundSummary" class="small muted">No round events recorded yet.</div><button class="save" id="finishRound" style="background:#101828">Finish &amp; Save Round</button><div class="review-log" id="roundLog"></div></div></div>
 <div class="section small muted">Alpha 0.2 — My Bag is saved on this iPhone. Garmin/MiScore/TrackMan integrations remain the next stages.</div>
 </div>
-<button class="mic" id="mic">🎙 Start Hands-Free Round</button>
+<button class="mic" id="mic">🎙 Talk to Caddie</button>
   <div class="gps-card">
   <div class="gps-status" id="gpsStatus">📍 GPS not started</div>
   <div class="gps-detail" id="gpsDetail">Tap Locate Me to get your position.</div>
   <button class="gps-button" id="gpsButton">📍 Locate Me</button>
-  <div class="round-mode" id="roundModeStatus">Voice is off. Start Hands-Free Round once to enable microphone and GPS access.</div>
+  <div class="round-mode" id="roundModeStatus">Voice ready. Tap Talk to Caddie for one command at a time.</div>
   <div class="course-tools">
     <div class="label">KILLARA COURSE SETUP</div>
     <div class="course-row"><span>Current hole</span><select class="course-select" id="courseHole" aria-label="Current hole"></select></div>
@@ -274,13 +274,13 @@ layupDistance.addEventListener('change',()=>{const value=Number(layupDistance.va
 finishRoundButton.onclick=()=>{finishCurrentRound();roundSummary.textContent='Round saved locally on this iPhone.'};
 renderRoundReview();
 const mic=document.getElementById('mic'),roundModeStatus=document.getElementById('roundModeStatus');
-let handsFreeActive=false,recognition=null,recognitionStarting=false,suppressRecognitionUntil=0;
-function setRoundMode(active,message){handsFreeActive=active;mic.textContent=active?'⏹ End Hands-Free Round':'🎙 Start Hands-Free Round';roundModeStatus.textContent=message}
-function startListening(){if(!handsFreeActive||recognitionStarting)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){setRoundMode(false,'Voice recognition is not available in this browser. Use Safari on iPhone for the field test.');return}if(!recognition){recognition=new SR();recognition.lang='en-AU';recognition.continuous=true;recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onstart=()=>{recognitionStarting=true;roundModeStatus.textContent='Listening for Caddie commands. Say “End round” to stop.'};recognition.onend=()=>{recognitionStarting=false;if(handsFreeActive)setTimeout(startListening,350)};recognition.onerror=e=>{recognitionStarting=false;if(e.error==='not-allowed'||e.error==='service-not-allowed'){setRoundMode(false,'Microphone access was denied. Allow microphone access, then start Hands-Free Round again.')}};recognition.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal&&Date.now()>=suppressRecognitionUntil)respond(e.results[i][0].transcript)}}}try{recognition.start()}catch(error){recognitionStarting=false}}
-function stopHandsFreeRound(message='Hands-free round mode stopped.'){setRoundMode(false,message);if(recognition&&recognitionStarting)recognition.stop();speak(message)}
+let recognition=null,listening=false,suppressRecognitionUntil=0;
+function setVoiceState(active,message){listening=active;mic.textContent=active?'⏹ Stop Listening':'🎙 Talk to Caddie';roundModeStatus.textContent=message}
+function startListening(){if(listening)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){setVoiceState(false,'Voice recognition is not available in this browser. Use Safari on iPhone for the field test.');return}recognition=new SR();recognition.lang='en-AU';recognition.continuous=false;recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onstart=()=>setVoiceState(true,'Listening for one command…');recognition.onend=()=>setVoiceState(false,'Voice ready. Tap Talk to Caddie for your next command.');recognition.onerror=e=>{const message=(e.error==='not-allowed'||e.error==='service-not-allowed')?'Microphone access was denied. Allow microphone access, then try again.':'Voice command not captured. Tap Talk to Caddie and try again.';setVoiceState(false,message)};recognition.onresult=e=>{if(Date.now()>=suppressRecognitionUntil)respond(e.results[0][0].transcript)};try{recognition.start();logEvent('voice_command_started')}catch(error){setVoiceState(false,'Voice command could not start. Try again.')}}
+function stopHandsFreeRound(message='Voice command ended.'){if(recognition&&listening)recognition.stop();setVoiceState(false,message);speak(message)}
 const originalSpeak=speak;
 speak=function(text){suppressRecognitionUntil=Date.now()+Math.max(1200,text.length*75);originalSpeak(text)}
-mic.onclick=()=>{if(handsFreeActive){stopHandsFreeRound();return}setRoundMode(true,'Starting hands-free round. Requesting microphone and GPS access…');logEvent('hands_free_started');requestLocation();startListening();speak('Hands-free round started. Say Locate Me, Hole followed by a number, or What is the play.')};
+mic.onclick=()=>{if(listening){stopHandsFreeRound('Listening stopped.');return}startListening()};
 </script>
 </body>
 </html>
